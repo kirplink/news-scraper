@@ -14,6 +14,12 @@ app.use(express.json());
 
 mongoose.connect("mongodb://localhost/articledb", { useNewUrlParser: true });
 
+// Set Handlebars as the default templating engine.
+var exphbs = require("express-handlebars");
+
+app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+app.set("view engine", "handlebars");
+
 app.get("/scrape", function(req, res) {
   axios.get("https://www.npr.org/sections/science/").then(function(response) {
     const $ = cheerio.load(response.data);
