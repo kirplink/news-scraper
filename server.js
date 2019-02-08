@@ -40,10 +40,10 @@ app.get("/scrape", function(req, res) {
 
       db.Article.create(result)
         .then(function(dbArticle) {
-          console.log(dbArticle);
+          res.json(dbArticle);
         })
         .catch(function(err) {
-          console.log(err);
+          res.json(err);
         });
     });
   });
