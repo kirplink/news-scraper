@@ -12,7 +12,8 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-mongoose.connect("mongodb://localhost/articledb", { useNewUrlParser: true });
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/articledb";
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
 // Set Handlebars as the default templating engine.
 var exphbs = require("express-handlebars");
@@ -55,6 +56,10 @@ app.get("/articles", function(req, res) {
         .catch(function(err) {
             res.json(err);
         });
+});
+
+app.get("/", function(req, res) {
+  res.render("index");
 });
 
 app.listen(PORT, function() {
