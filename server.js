@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/articledb";
+console.log(MONGODB_URI);
 mongoose.connect(MONGODB_URI);
 
 // Set Handlebars as the default templating engine.
