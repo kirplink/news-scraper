@@ -40,28 +40,71 @@ app.get("/scrape", function(req, res) {
 
       db.Article.create(result)
         .then(function(dbArticle) {
-          res.json(dbArticle);
+          res.redirect("/");
         })
         .catch(function(err) {
-          res.json(err);
+          // res.json(err);
         });
-    });
+    })
   });
 });
 
-app.get("/articles", function(req, res) {
+app.get("/", function(req, res) {
     db.Article.find({})
         .then(function(dbArticle) {
-            res.json(dbArticle);
+            res.render("index", {dbArticle});
         })
         .catch(function(err) {
             res.json(err);
         });
 });
 
-app.get("/", function(req, res) {
-  res.render("index");
+app.get("/article/save/:id", function(req, res) {
+  var id = req.params.id
+  db.Article.findByIdAndUpdate(id, { saved: true})
+    .then(function(dbArticle) {
+      // dbArticle.remove();
+      res.redirect("back");
+    })
+    .catch(function(err) {
+      res.redirect("/");
+    })
 });
+
+app.get("/article/clear", function(req, res) {
+  db.Article.find({saved: false}).remove()
+    .then(function(dbArticle) {
+      res.redirect("back");
+    })
+    .catch(function(err) {
+      res.json(err);
+    })
+});
+
+app.get("/article/delete/:id", function(req, res) {
+  var id = req.params.id
+  db.Article.findByIdAndRemove(id)
+    .then(function(dbArticle) {
+      res.redirect("/")
+    })
+    .catch(function(err) {
+      res.json(err);
+    });
+});
+
+app.get("/article/detail/:id", function(req, res) {
+  var id = req.params.id;
+  db.Article.findById(id)
+    .then(function(dbArticle) {
+      res.render("article", {
+        link: dbArticle.link,
+        title: dbArticle.title,
+        summary: dbArticle.summary,
+        saved: dbArticle.saved,
+        _id: dbArticle._id
+      });
+    });
+})
 
 app.listen(PORT, function() {
   console.log("Runnig on http://localhost:" + PORT);
