@@ -1,16 +1,13 @@
 const express = require("express");
-const cheerio = require("cheerio");
-const axios = require("axios");
 const mongoose = require("mongoose");
-
-const db = require("./models");
+const bodyParser = require('body-parser');
 
 const PORT = process.env.PORT || 8080;
 
 const app = express();
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
 var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/articledb";
 console.log(MONGODB_URI);
@@ -22,89 +19,7 @@ var exphbs = require("express-handlebars");
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
-app.get("/scrape", function(req, res) {
-  axios.get("https://www.npr.org/sections/science/").then(function(response) {
-    const $ = cheerio.load(response.data);
-
-    $("article").each(function(i, element) {
-      let result = {};
-      result.title = $(this)
-        .find(".title")
-        .text();
-      result.summary = $(this)
-        .find(".teaser")
-        .text();
-      result.link = $(this)
-        .find("a")
-        .attr("href");
-
-      db.Article.create(result)
-        .then(function(dbArticle) {
-          res.redirect("/");
-        })
-        .catch(function(err) {
-          // res.json(err);
-        });
-    })
-  });
-});
-
-app.get("/", function(req, res) {
-    db.Article.find({})
-        .then(function(dbArticle) {
-            res.render("index", {dbArticle});
-        })
-        .catch(function(err) {
-            res.json(err);
-        });
-});
-
-app.get("/article/save/:id", function(req, res) {
-  var id = req.params.id
-  db.Article.findByIdAndUpdate(id, { saved: true})
-    .then(function(dbArticle) {
-      // dbArticle.remove();
-      res.redirect("back");
-    })
-    .catch(function(err) {
-      res.redirect("/");
-    })
-});
-
-app.get("/article/clear", function(req, res) {
-  db.Article.find({saved: false}).remove()
-    .then(function(dbArticle) {
-      res.redirect("back");
-    })
-    .catch(function(err) {
-      res.json(err);
-    })
-});
-
-app.get("/article/delete/:id", function(req, res) {
-  var id = req.params.id
-  db.Article.findByIdAndRemove(id)
-    .then(function(dbArticle) {
-      res.redirect("/")
-    })
-    .catch(function(err) {
-      res.json(err);
-    });
-});
-
-app.get("/article/detail/:id", function(req, res) {
-  var id = req.params.id;
-  db.Article.findById(id)
-    .then(function(dbArticle) {
-      res.render("article", {
-        link: dbArticle.link,
-        title: dbArticle.title,
-        summary: dbArticle.summary,
-        saved: dbArticle.saved,
-        _id: dbArticle._id
-      });
-    });
-})
+require("./routes/routes.js")(app);
 
 app.listen(PORT, function() {
   console.log("Runnig on http://localhost:" + PORT);
